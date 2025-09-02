@@ -2,121 +2,293 @@
 #include <iostream>
 using namespace std;
 
-struct Element { int i,j,x; };
-struct Sparse {
-    int m,n,num;
-    Element *e;
-};
+void transpose(int mat[][3], int trans[][3])
+{
 
-Sparse* transpose(Sparse *s) {
-    Sparse* t = new Sparse;
-    t->m=s->n; t->n=s->m; t->num=s->num;
-    t->e=new Element[s->num];
-    int k=0;
-    for(int col=0; col<s->n; col++){
-        for(int i=0;i<s->num;i++){
-            if(s->e[i].j==col){
-                t->e[k].i=s->e[i].j;
-                t->e[k].j=s->e[i].i;
-                t->e[k++].x=s->e[i].x;
+    trans[0][0] = mat[0][1];
+    trans[0][1] = mat[0][0];
+    trans[0][2] = mat[0][2];
+
+    int k = 1;
+    for (int i = 0; i < mat[0][1]; i++)
+    {
+        for (int j = 1; j <= mat[0][2]; j++)
+        {
+            if (mat[j][1] == i)
+            {
+                trans[k][0] = mat[j][1];
+                trans[k][1] = mat[j][0];
+                trans[k][2] = mat[j][2];
+                k++;
             }
         }
     }
-    return t;
 }
 
-int main(){
-    Sparse s;
-    s.m=3; s.n=3; s.num=3;
-    s.e=new Element[s.num];
-    s.e[0]={0,0,5}; s.e[1]={1,2,8}; s.e[2]={2,1,6};
-    Sparse* t=transpose(&s);
-    for(int i=0;i<t->num;i++)
-        cout<<t->e[i].i<<" "<<t->e[i].j<<" "<<t->e[i].x<<endl;
+int main()
+{
+    int rows, columns, noofnonzero;
+    cout << "Enter no. of rows, columns and no. of non-zero elements: ";
+    cin >> rows >> columns >> noofnonzero;
+
+    int mat[100][3];
+    int trans[100][3];
+
+    mat[0][0] = rows;
+    mat[0][1] = columns;
+    mat[0][2] = noofnonzero;
+
+    cout << "Enter row, column, value for each non-zero element:";
+    for (int i = 1; i <= noofnonzero; i++)
+    {
+        cin >> mat[i][0] >> mat[i][1] >> mat[i][2];
+    }
+
+    cout << "Original :";
+    for (int i = 0; i <= noofnonzero; i++)
+    {
+        cout << mat[i][0] << " " << mat[i][1] << " " << mat[i][2] << "\n";
+    }
+
+    transpose(mat, trans);
+
+    cout << "Transposed :";
+    for (int i = 0; i <= noofnonzero; i++)
+    {
+        cout << trans[i][0] << " " << trans[i][1] << " " << trans[i][2] << "\n";
+    }
+
     return 0;
 }
+
 
 //6(b)
 #include <iostream>
 using namespace std;
 
-struct Element { int i,j,x; };
-struct Sparse {
-    int m,n,num;
-    Element *e;
-};
+void inputMatrix(int mat[][3], int &noofnonzero)
+{
+    int rows, columns;
+    cout << "Enter rows, columns, non-zero elements: ";
+    cin >> rows >> columns >> noofnonzero;
 
-Sparse* add(Sparse *s1,Sparse *s2){
-    if(s1->m!=s2->m || s1->n!=s2->n) return nullptr;
-    Sparse* sum=new Sparse;
-    sum->m=s1->m; sum->n=s1->n;
-    sum->e=new Element[s1->num+s2->num];
-    int i=0,j=0,k=0;
-    while(i<s1->num && j<s2->num){
-        if(s1->e[i].i<s2->e[j].i || (s1->e[i].i==s2->e[j].i && s1->e[i].j<s2->e[j].j))
-            sum->e[k++]=s1->e[i++];
-        else if(s2->e[j].i<s1->e[i].i || (s2->e[j].i==s1->e[i].i && s2->e[j].j<s1->e[i].j))
-            sum->e[k++]=s2->e[j++];
-        else {
-            sum->e[k]=s1->e[i]; sum->e[k++].x=s1->e[i++].x+s2->e[j++].x;
-        }
+    mat[0][0] = rows;
+    mat[0][1] = columns;
+    mat[0][2] = noofnonzero;
+
+    cout << "Enter row, column, value for each non-zero element:\n";
+    for (int i = 1; i <= noofnonzero; i++)
+    {
+        cin >> mat[i][0] >> mat[i][1] >> mat[i][2];
     }
-    while(i<s1->num) sum->e[k++]=s1->e[i++];
-    while(j<s2->num) sum->e[k++]=s2->e[j++];
-    sum->num=k;
-    return sum;
 }
 
-int main(){
-    Sparse s1,s2;
-    s1.m=s2.m=3; s1.n=s2.n=3;
-    s1.num=2; s2.num=2;
-    s1.e=new Element[s1.num]; s2.e=new Element[s2.num];
-    s1.e[0]={0,0,5}; s1.e[1]={1,2,8};
-    s2.e[0]={0,0,3}; s2.e[1]={2,1,6};
-    Sparse* sum=add(&s1,&s2);
-    for(int i=0;i<sum->num;i++)
-        cout<<sum->e[i].i<<" "<<sum->e[i].j<<" "<<sum->e[i].x<<endl;
+void printMatrix(int mat[][3])
+{
+    int count = mat[0][2];
+    for (int i = 0; i <= count; i++)
+    {
+        cout << mat[i][0] << " " << mat[i][1] << " " << mat[i][2] << "\n";
+    }
+}
+
+void addSparse(int mat1[][3], int mat2[][3], int result[][3])
+{
+    int m1 = mat1[0][2];
+    int m2 = mat2[0][2];
+
+    int i = 1, j = 1, k = 1;
+
+    result[0][0] = mat1[0][0];
+    result[0][1] = mat1[0][1];
+
+    while (i <= m1 && j <= m2)
+    {
+        if (mat1[i][0] < mat2[j][0] ||
+            (mat1[i][0] == mat2[j][0] && mat1[i][1] < mat2[j][1]))
+        {
+            result[k][0] = mat1[i][0];
+            result[k][1] = mat1[i][1];
+            result[k][2] = mat1[i][2];
+            i++;
+        }
+        else if (mat2[j][0] < mat1[i][0] ||
+                 (mat2[j][0] == mat1[i][0] && mat2[j][1] < mat1[i][1]))
+        {
+            result[k][0] = mat2[j][0];
+            result[k][1] = mat2[j][1];
+            result[k][2] = mat2[j][2];
+            j++;
+        }
+        else
+        {
+            result[k][0] = mat1[i][0];
+            result[k][1] = mat1[i][1];
+            result[k][2] = mat1[i][2] + mat2[j][2];
+            i++;
+            j++;
+        }
+        k++;
+    }
+
+    while (i <= m1)
+    {
+        result[k][0] = mat1[i][0];
+        result[k][1] = mat1[i][1];
+        result[k][2] = mat1[i][2];
+        i++;
+        k++;
+    }
+    while (j <= m2)
+    {
+        result[k][0] = mat2[j][0];
+        result[k][1] = mat2[j][1];
+        result[k][2] = mat2[j][2];
+        j++;
+        k++;
+    }
+
+    result[0][2] = k - 1;
+}
+
+int main()
+{
+    int mat1[100][3], mat2[100][3], sum[100][3];
+    int n1, n2;
+
+    cout << "First matrix:\n";
+    inputMatrix(mat1, n1);
+
+    cout << "Second matrix:\n";
+    inputMatrix(mat2, n2);
+
+    addSparse(mat1, mat2, sum);
+
+    cout << "\nSum matrix:\n";
+    printMatrix(sum);
+
     return 0;
 }
 
 //6(c)
 #include <iostream>
-#include <vector>
 using namespace std;
 
-struct Element { int i,j,x; };
-struct Sparse {
-    int m,n,num;
-    Element *e;
-};
+void inputMatrix(int mat[][3], int &noofnonzero)
+{
+    int rows, columns;
+    cout << "Enter rows, columns, non-zero elements: ";
+    cin >> rows >> columns >> noofnonzero;
 
-Sparse* multiply(Sparse *s1,Sparse *s2){
-    if(s1->n!=s2->m) return nullptr;
-    vector<Element> res;
-    for(int i=0;i<s1->num;i++){
-        for(int j=0;j<s2->num;j++){
-            if(s1->e[i].j==s2->e[j].i){
-                res.push_back({s1->e[i].i,s2->e[j].j,s1->e[i].x*s2->e[j].x});
+    mat[0][0] = rows;
+    mat[0][1] = columns;
+    mat[0][2] = noofnonzero;
+
+    cout << "Enter row, column, value for each non-zero element:\n";
+    for (int i = 1; i <= noofnonzero; i++)
+    {
+        cin >> mat[i][0] >> mat[i][1] >> mat[i][2];
+    }
+}
+
+void transpose(int mat2[][3], int trans[][3])
+{
+    trans[0][0] = mat2[0][1];
+    trans[0][1] = mat2[0][0];
+    trans[0][2] = mat2[0][2];
+
+    int k = 1;
+    for (int col = 0; col < mat2[0][1]; col++)
+    {
+        for (int i = 1; i <= mat2[0][2]; i++)
+        {
+            if (mat2[i][1] == col)
+            {
+                trans[k][0] = mat2[i][1];
+                trans[k][1] = mat2[i][0];
+                trans[k][2] = mat2[i][2];
+                k++;
             }
         }
     }
-    Sparse* prod=new Sparse;
-    prod->m=s1->m; prod->n=s2->n; prod->num=res.size();
-    prod->e=new Element[res.size()];
-    for(int i=0;i<res.size();i++) prod->e[i]=res[i];
-    return prod;
 }
 
-int main(){
-    Sparse s1,s2;
-    s1.m=2; s1.n=2; s1.num=2;
-    s2.m=2; s2.n=2; s2.num=2;
-    s1.e=new Element[s1.num]; s2.e=new Element[s2.num];
-    s1.e[0]={0,0,2}; s1.e[1]={1,1,3};
-    s2.e[0]={0,0,4}; s2.e[1]={1,1,5};
-    Sparse* prod=multiply(&s1,&s2);
-    for(int i=0;i<prod->num;i++)
-        cout<<prod->e[i].i<<" "<<prod->e[i].j<<" "<<prod->e[i].x<<endl;
+<<<<<<< HEAD
+void multiSparse(int mat1[][3], int trans[][3], int result[][3])
+{
+    int k = 1;
+    result[0][0] = mat1[0][0];
+    result[0][1] = trans[0][0];
+    result[0][2] = 0;
+
+    for (int i = 1; i <= mat1[0][2]; i++)
+    {
+        for (int j = 1; j <= trans[0][2]; j++)
+        {
+            if (mat1[i][1] == trans[j][1])
+            {
+
+                int found = -1;
+                for (int x = 1; x < k; x++)
+                {
+                    if (result[x][0] == mat1[i][0] && result[x][1] == trans[j][0])
+                    {
+                        found = x;
+                        break;
+                    }
+                }
+                if (found != -1)
+                {
+                    result[found][2] += mat1[i][2] * trans[j][2];
+                }
+                else
+                {
+                    result[k][0] = mat1[i][0];
+                    result[k][1] = trans[j][0];
+                    result[k][2] = mat1[i][2] * trans[j][2];
+                    k++;
+                }
+            }
+        }
+    }
+    result[0][2] = k - 1;
+}
+
+void printSparse(int mat[][3])
+{
+    int n = mat[0][2];
+    cout << "Row\tCol\tVal\n";
+    for (int i = 0; i <= n; i++)
+    {
+        cout << mat[i][0] << "\t" << mat[i][1] << "\t" << mat[i][2] << "\n";
+    }
+}
+
+int main()
+{
+    int mat1[100][3];
+    int mat2[100][3];
+    int n1 = 5;
+    int n2 = 5;
+
+    inputMatrix(mat1, n1);
+    inputMatrix(mat2, n2);
+
+    int trans[100][3];
+    int result[200][3];
+
+    cout << "Matrix 1:\n";
+    printSparse(mat1);
+    cout << "\nMatrix 2:\n";
+    printSparse(mat2);
+
+    transpose(mat2, trans);
+    cout << "\nTranspose of Matrix 2:\n";
+    printSparse(trans);
+
+    multiSparse(mat1, trans, result);
+    cout << "\nResult Matrix:\n";
+    printSparse(result);
+
     return 0;
 }
